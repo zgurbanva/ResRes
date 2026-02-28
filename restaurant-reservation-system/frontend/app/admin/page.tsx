@@ -199,18 +199,22 @@ export default function AdminPage() {
             </span>
           </div>
           <div className="bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-7">
-            <h1 className="text-xl font-bold text-white mb-6 text-center">
+            <h1 className="text-xl font-bold text-white mb-2 text-center">
               Sign in to Dashboard
             </h1>
+            <p className="text-xs text-purple-200/40 text-center mb-6">
+              Each admin can only manage their own restaurant
+            </p>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                  Email
+                  Restaurant Admin Email
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. papa-johns-28-may@resres.az"
                   className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50 transition"
                   required
                 />
@@ -223,6 +227,7 @@ export default function AdminPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50 transition"
                   required
                 />
@@ -282,9 +287,12 @@ export default function AdminPage() {
                   Dashboard
                 </button>
               ) : (
-                <span className="text-purple-300/60 font-medium">
-                  {adminRestaurantName}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-purple-500/15 border border-purple-500/25 text-purple-300 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                    {adminRestaurantName}
+                  </span>
+                  <span className="text-purple-200/30 text-[10px]">Admin</span>
+                </div>
               )}
               {(isSuperAdmin || !adminRestaurantId) && view.page === "restaurants" && (
                 <>
@@ -351,6 +359,27 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* ═══════════════════════════════════════════════════════
+            RESTAURANT ADMIN BANNER — shows which restaurant this admin manages
+            ═══════════════════════════════════════════════════════ */}
+        {adminRestaurantId && adminRestaurantName && !isSuperAdmin && (
+          <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-purple-700/5 border border-purple-500/15 rounded-xl p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Managing: <span className="text-purple-400">{adminRestaurantName}</span>
+              </p>
+              <p className="text-xs text-purple-200/40">
+                You can only view and manage tables for this restaurant
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ═══════════════════════════════════════════════════════
             NOTIFICATION BANNER — always visible if reservations exist
             ═══════════════════════════════════════════════════════ */}
