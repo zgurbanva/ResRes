@@ -117,6 +117,23 @@ def update_reservation(
         raise HTTPException(status_code=400, detail="Invalid status")
 
     reservation.status = data.status
+
+    # When declining/cancelling, clear manual_status on the table if no more
+    # confirmed reservations remain for that date so the table shows as empty
+    if data.status in ("declined", "cancelled"):
+        from app.models.table import Table as TableModel
+        remaining = db.query(Reservation).filter(
+            Reservation.table_id == reservation.table_id,
+            Reservation.date == reservation.date,
+            Reservation.status == "confirmed",
+            Reservation.id != reservation.id,
+        ).count()
+        if remaining == 0:
+            table_obj = db.query(TableModel).filter(TableModel.id == reservation.table_id).first()
+            if table_obj and table_obj.manual_status and table_obj.manual_status_date == str(reservation.date):
+                table_obj.manual_status = None
+                table_obj.manual_status_date = None
+
     db.commit()
     db.refresh(reservation)
     return reservation
