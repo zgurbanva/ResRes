@@ -15,6 +15,7 @@ from app.schemas.table import TableCreate, TableUpdate, TableOut
 from app.schemas.restaurant import RestaurantUpdate, RestaurantOut
 from app.core.security import verify_password, create_access_token, get_current_admin
 from app.services.availability import check_time_overlap
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin")
 
@@ -192,6 +193,36 @@ def delete_table(
     db.delete(table)
     db.commit()
     return None
+
+
+# ─── Table status (occupied / empty / blocked) ──────────────────
+
+class TableStatusUpdate(BaseModel):
+    status: str  # "occupied", "empty", "blocked"
+    date: str    # "YYYY-MM-DD"
+
+
+@router.patch("/tables/{table_id}/status")
+def set_table_status(
+    table_id: int,
+    data: TableStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin),
+):
+    table = db.query(Table).filter(Table.id == table_id).first()
+    if not table:
+        raise HTTPException(status_code=404, detail="Table not found")
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
+    if data.status not in ("occupied", "empty", "blocked"):
+        raise HTTPException(status_code=400, detail="Status must be occupied, empty, or blocked")
+
+    table.manual_status = data.status
+    table.manual_status_date = data.date
+    db.commit()
+    db.refresh(table)
+    return {"ok": True, "table_id": table.id, "status": data.status, "date": data.date}
 
 
 # ─── Restaurant floor shape ─────────────────────────────────────

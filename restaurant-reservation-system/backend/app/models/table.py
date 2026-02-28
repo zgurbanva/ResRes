@@ -16,6 +16,8 @@ class Table(Base):
     height = Column(Integer, nullable=False, default=80)
     shape = Column(String, nullable=False, default="rect")  # rect or circle
     zone = Column(String, nullable=True)  # Window, Front, Patio, Center, Terrace, Bar, VIP, etc.
+    manual_status = Column(String, nullable=True)  # null = auto, "occupied", "empty", "blocked"
+    manual_status_date = Column(String, nullable=True)  # date the manual status applies to (YYYY-MM-DD)
 
     restaurant = relationship("Restaurant", back_populates="tables")
     reservations = relationship("Reservation", back_populates="table", cascade="all, delete-orphan")

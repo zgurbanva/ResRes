@@ -54,12 +54,22 @@ def get_table_status(
     db: Session,
     table_id: int,
     date: datetime.date,
+    table_obj=None,
 ) -> str:
     """
     Returns the status of a table for a given date.
-    Shows 'reserved' if any confirmed reservation exists for that date,
-    and 'blocked' if any block exists for that date.
+    If the admin has set a manual status for this date, that takes priority.
+    Otherwise shows 'reserved' if any confirmed reservation exists,
+    and 'blocked' if any block exists.
     """
+    # Check manual status override (set by admin)
+    if table_obj is None:
+        from app.models.table import Table
+        table_obj = db.query(Table).filter(Table.id == table_id).first()
+    if table_obj and table_obj.manual_status and table_obj.manual_status_date == str(date):
+        status_map = {"occupied": "reserved", "empty": "available", "blocked": "blocked"}
+        return status_map.get(table_obj.manual_status, table_obj.manual_status)
+
     # Check if blocked (any block on that date)
     block = db.query(TableBlock).filter(
         and_(

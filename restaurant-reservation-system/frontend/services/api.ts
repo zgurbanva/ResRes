@@ -106,6 +106,16 @@ export const api = {
       headers: authHeaders(token),
     }),
 
+  adminSetTableStatus: (token: string, tableId: number, status: string, date: string) =>
+    request<{ ok: boolean; table_id: number; status: string; date: string }>(
+      `/admin/tables/${tableId}/status`,
+      {
+        method: "PATCH",
+        headers: authHeaders(token),
+        body: JSON.stringify({ status, date }),
+      }
+    ),
+
   // Admin restaurant floor shape
   adminUpdateRestaurant: (token: string, restaurantId: number, data: { floor_shape?: string }) =>
     request<Restaurant>(`/admin/restaurants/${restaurantId}`, {

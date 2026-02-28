@@ -943,113 +943,201 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Block / Manage panel */}
+              {/* Status / Block panel */}
               <div className="bg-white/[0.04] border border-purple-500/10 rounded-2xl p-6 h-fit">
                 <h3 className="text-sm font-bold text-white mb-2">
-                  Block / Manage Table
+                  Table Status
                 </h3>
                 <p className="text-purple-200/30 text-xs mb-5">
-                  Click a table on the floor plan, then set the time range
-                  to block it.
+                  Click a table, then set its status or block a time range.
                 </p>
-                <form onSubmit={handleBlockTable} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                      Selected Table
-                    </label>
-                    <div className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm flex items-center gap-2">
-                      {blockTableId ? (
-                        <>
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              tables.find((t) => t.id === blockTableId)
-                                ?.status === "available"
-                                ? "bg-emerald-400"
-                                : tables.find(
-                                    (t) => t.id === blockTableId
-                                  )?.status === "reserved"
-                                ? "bg-amber-400"
-                                : "bg-red-400"
-                            }`}
-                          />
-                          <span className="text-white">
-                            {tables.find((t) => t.id === blockTableId)
-                              ?.name || "Table #" + blockTableId}
-                          </span>
-                          <span className="text-purple-200/30 text-xs capitalize">
-                            (
-                            {
-                              tables.find((t) => t.id === blockTableId)
-                                ?.status
-                            }
-                            )
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-purple-200/20">
-                          Click a table...
+
+                {/* Selected table */}
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                    Selected Table
+                  </label>
+                  <div className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm flex items-center gap-2">
+                    {blockTableId ? (
+                      <>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            tables.find((t) => t.id === blockTableId)
+                              ?.status === "available"
+                              ? "bg-emerald-400"
+                              : tables.find(
+                                  (t) => t.id === blockTableId
+                                )?.status === "reserved"
+                              ? "bg-amber-400"
+                              : "bg-red-400"
+                          }`}
+                        />
+                        <span className="text-white">
+                          {tables.find((t) => t.id === blockTableId)
+                            ?.name || "Table #" + blockTableId}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-purple-200/30 text-xs capitalize">
+                          (
+                          {tables.find((t) => t.id === blockTableId)
+                            ?.status === "available"
+                            ? "Empty"
+                            : tables.find((t) => t.id === blockTableId)
+                                ?.status === "reserved"
+                            ? "Occupied"
+                            : "Blocked"}
+                          )
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-purple-200/20">
+                        Click a table...
+                      </span>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                        Start
-                      </label>
-                      <input
-                        type="time"
-                        value={blockStartTime}
-                        onChange={(e) =>
-                          setBlockStartTime(e.target.value)
-                        }
-                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                        End
-                      </label>
-                      <input
-                        type="time"
-                        value={blockEndTime}
-                        onChange={(e) => setBlockEndTime(e.target.value)}
-                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                      Reason
+                </div>
+
+                {/* Quick status buttons */}
+                {blockTableId && (
+                  <div className="mb-5">
+                    <label className="block text-xs font-medium text-purple-200/50 mb-2">
+                      Set Status for {selectedDate}
                     </label>
-                    <input
-                      type="text"
-                      value={blockReason}
-                      onChange={(e) => setBlockReason(e.target.value)}
-                      className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition placeholder-white/20"
-                      placeholder="Maintenance, VIP, etc."
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!token || !blockTableId) return;
+                          try {
+                            await api.adminSetTableStatus(token, blockTableId, "empty", selectedDate);
+                            setBlockSuccess(true);
+                            setBlockError("");
+                            refreshFloorplan();
+                            setTimeout(() => setBlockSuccess(false), 2000);
+                          } catch (err: any) {
+                            setBlockError(err.message || "Failed");
+                          }
+                        }}
+                        className={`py-2 rounded-xl text-xs font-semibold transition border ${
+                          tables.find((t) => t.id === blockTableId)?.status === "available"
+                            ? "bg-emerald-500/30 border-emerald-500/50 text-emerald-300"
+                            : "bg-white/[0.04] border-white/10 text-emerald-400 hover:bg-emerald-500/15 hover:border-emerald-500/30"
+                        }`}
+                      >
+                        &#x2713; Empty
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!token || !blockTableId) return;
+                          try {
+                            await api.adminSetTableStatus(token, blockTableId, "occupied", selectedDate);
+                            setBlockSuccess(true);
+                            setBlockError("");
+                            refreshFloorplan();
+                            setTimeout(() => setBlockSuccess(false), 2000);
+                          } catch (err: any) {
+                            setBlockError(err.message || "Failed");
+                          }
+                        }}
+                        className={`py-2 rounded-xl text-xs font-semibold transition border ${
+                          tables.find((t) => t.id === blockTableId)?.status === "reserved"
+                            ? "bg-amber-500/30 border-amber-500/50 text-amber-300"
+                            : "bg-white/[0.04] border-white/10 text-amber-400 hover:bg-amber-500/15 hover:border-amber-500/30"
+                        }`}
+                      >
+                        &#x25C9; Occupied
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!token || !blockTableId) return;
+                          try {
+                            await api.adminSetTableStatus(token, blockTableId, "blocked", selectedDate);
+                            setBlockSuccess(true);
+                            setBlockError("");
+                            refreshFloorplan();
+                            setTimeout(() => setBlockSuccess(false), 2000);
+                          } catch (err: any) {
+                            setBlockError(err.message || "Failed");
+                          }
+                        }}
+                        className={`py-2 rounded-xl text-xs font-semibold transition border ${
+                          tables.find((t) => t.id === blockTableId)?.status === "blocked"
+                            ? "bg-red-500/30 border-red-500/50 text-red-300"
+                            : "bg-white/[0.04] border-white/10 text-red-400 hover:bg-red-500/15 hover:border-red-500/30"
+                        }`}
+                      >
+                        &#x2715; Blocked
+                      </button>
+                    </div>
+                    {blockError && (
+                      <div className="mt-3 bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-sm">
+                        {blockError}
+                      </div>
+                    )}
+                    {blockSuccess && (
+                      <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 rounded-lg text-sm">
+                        &#x2713; Status updated!
+                      </div>
+                    )}
                   </div>
-                  {blockError && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-sm">
-                      {blockError}
+                )}
+
+                {/* Block with time range */}
+                <div className="border-t border-purple-500/10 pt-5 mt-2">
+                  <h4 className="text-xs font-semibold text-purple-200/40 uppercase tracking-wider mb-3">
+                    Block Time Range
+                  </h4>
+                  <form onSubmit={handleBlockTable} className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                          Start
+                        </label>
+                        <input
+                          type="time"
+                          value={blockStartTime}
+                          onChange={(e) =>
+                            setBlockStartTime(e.target.value)
+                          }
+                          className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                          End
+                        </label>
+                        <input
+                          type="time"
+                          value={blockEndTime}
+                          onChange={(e) => setBlockEndTime(e.target.value)}
+                          className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition"
+                          required
+                        />
+                      </div>
                     </div>
-                  )}
-                  {blockSuccess && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 rounded-lg text-sm">
-                      &#x2713; Table blocked successfully!
+                    <div>
+                      <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                        Reason
+                      </label>
+                      <input
+                        type="text"
+                        value={blockReason}
+                        onChange={(e) => setBlockReason(e.target.value)}
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500/50 transition placeholder-white/20"
+                        placeholder="Maintenance, VIP, etc."
+                      />
                     </div>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={!blockTableId}
-                    className="w-full bg-red-500/80 hover:bg-red-500 text-white py-2.5 rounded-xl font-medium transition disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    Block Table
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={!blockTableId}
+                      className="w-full bg-red-500/80 hover:bg-red-500 text-white py-2.5 rounded-xl font-medium transition disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+                    >
+                      Block Time Range
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
