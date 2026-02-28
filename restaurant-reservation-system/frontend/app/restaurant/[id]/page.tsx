@@ -380,7 +380,7 @@ export default function RestaurantPage({
 
       {/* Floating Google Maps Card — always visible */}
       {restaurant?.address && !mapOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-72 md:w-80 animate-fade-in" style={{ pointerEvents: "auto" }}>
+        <div className="fixed bottom-6 right-6 z-50 w-[340px] md:w-[400px] animate-fade-in" style={{ pointerEvents: "auto" }}>
           <div className="bg-[#1a0e2e]/95 backdrop-blur-xl border border-purple-500/20 rounded-2xl shadow-2xl overflow-hidden">
             {/* Map header */}
             <div className="flex items-center justify-between px-3 py-2 border-b border-purple-500/10">
@@ -389,7 +389,7 @@ export default function RestaurantPage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-[11px] font-medium text-purple-200/60 truncate">{restaurant.address}</span>
+                <span className="text-[11px] font-medium text-purple-200/60 truncate">{restaurant.name} — {restaurant.address}</span>
               </div>
               <button
                 onClick={() => setMapOpen(true)}
@@ -403,19 +403,19 @@ export default function RestaurantPage({
             </div>
 
             {/* Map iframe */}
-            <div className="w-full h-44">
+            <div className="w-full h-64 md:h-72">
               <iframe
                 className="w-full h-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(restaurant.address + ', Baku, Azerbaijan')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(restaurant.name.replace(/\s*—\s*/g, ', ') + ', ' + restaurant.address + ', Baku, Azerbaijan')}&t=&z=17&ie=UTF8&iwloc=&output=embed`}
                 allowFullScreen
               />
             </div>
 
             {/* Open in Google Maps link */}
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address + ', Baku, Azerbaijan')}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name.replace(/\s*—\s*/g, ', ') + ', ' + restaurant.address + ', Baku, Azerbaijan')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 px-3 py-2 text-[11px] text-purple-400/60 hover:text-purple-300 transition-colors border-t border-purple-500/10"
