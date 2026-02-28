@@ -48,8 +48,12 @@ export default function AdminPage() {
   /* ── Notification dismiss tracking ──────────────────────── */
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
 
+  const pendingReservations = allReservations.filter(
+    (r) => r.status === "pending"
+  );
+
   const activeReservations = allReservations.filter(
-    (r) => r.status === "confirmed" && !dismissedIds.has(r.id)
+    (r) => r.status === "pending" && !dismissedIds.has(r.id)
   );
 
   /* ── Login ──────────────────────────────────────────────── */
@@ -88,6 +92,18 @@ export default function AdminPage() {
       .then(setAllReservations)
       .catch(console.error);
   }, [token, isSuperAdmin, adminRestaurantId]);
+
+  /* ── Auto-poll for new reservations every 15s ───────────── */
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      api.adminGetReservations(token).then(setAllReservations).catch(console.error);
+      if (view.page === "floorplan") {
+        api.getAvailability(view.restaurantId, selectedDate).then(setTables).catch(console.error);
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [token, view, selectedDate]);
 
   /* ── Load tables when viewing a floor plan ──────────────── */
   useEffect(() => {
@@ -387,8 +403,8 @@ export default function AdminPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                New Reservations
+                <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                Pending Approval
                 <span className="text-purple-300/30 font-normal">
                   ({activeReservations.length})
                 </span>
@@ -412,12 +428,12 @@ export default function AdminPage() {
                 return (
                   <div
                     key={r.id}
-                    className="bg-white/[0.04] border border-purple-500/10 rounded-xl p-4 flex items-center justify-between gap-4 hover:bg-white/[0.06] transition group"
+                    className="bg-yellow-500/[0.04] border border-yellow-500/15 rounded-xl p-4 flex items-center justify-between gap-4 hover:bg-yellow-500/[0.08] transition group"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
                         <svg
-                          className="w-5 h-5 text-emerald-400"
+                          className="w-5 h-5 text-yellow-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -436,12 +452,16 @@ export default function AdminPage() {
                           <span className="text-purple-300/30 font-normal ml-2">
                             #{r.id}
                           </span>
+                          <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/20">
+                            PENDING
+                          </span>
                         </div>
                         <div className="text-xs text-purple-200/40 truncate">
                           {rest?.name ||
                             "Restaurant #" + r.restaurant_id}{" "}
                           &middot; {r.date} &middot; {r.start_time} &mdash;{" "}
                           {r.end_time}
+                          {r.user_phone && <span className="ml-1">&middot; {r.user_phone}</span>}
                           {r.preorder_note && (
                             <span className="ml-2 text-amber-400/60">
                               {r.preorder_note}
@@ -456,23 +476,23 @@ export default function AdminPage() {
                         className="text-xs bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 px-3 py-1.5 rounded-lg transition border border-purple-500/20"
                         title="View restaurant floor plan"
                       >
-                        View Tables
+                        View
                       </button>
                       <button
                         onClick={() =>
-                          handleStatusChange(r.id, "cancelled")
+                          handleStatusChange(r.id, "confirmed")
                         }
-                        className="text-xs bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 px-2.5 py-1.5 rounded-lg transition border border-white/5"
+                        className="text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 px-3 py-1.5 rounded-lg transition border border-emerald-500/20 font-semibold"
                       >
-                        Cancel
+                        &#x2713; Approve
                       </button>
                       <button
                         onClick={() =>
                           handleStatusChange(r.id, "declined")
                         }
-                        className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 px-2.5 py-1.5 rounded-lg transition border border-red-500/10"
+                        className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg transition border border-red-500/10 font-semibold"
                       >
-                        Decline
+                        &#x2715; Reject
                       </button>
                       <button
                         onClick={() =>
@@ -731,6 +751,8 @@ export default function AdminPage() {
                               className={`w-2 h-2 rounded-full flex-shrink-0 ${
                                 r.status === "confirmed"
                                   ? "bg-emerald-400"
+                                  : r.status === "pending"
+                                  ? "bg-yellow-400 animate-pulse"
                                   : r.status === "cancelled"
                                   ? "bg-white/30"
                                   : "bg-red-400"
@@ -756,6 +778,8 @@ export default function AdminPage() {
                               className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                                 r.status === "confirmed"
                                   ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                                  : r.status === "pending"
+                                  ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20"
                                   : r.status === "cancelled"
                                   ? "bg-white/5 text-white/30 border border-white/10"
                                   : "bg-red-500/15 text-red-400 border border-red-500/20"
@@ -763,6 +787,28 @@ export default function AdminPage() {
                             >
                               {r.status}
                             </span>
+                            {r.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    handleStatusChange(r.id, "confirmed");
+                                    refreshFloorplan();
+                                  }}
+                                  className="text-[10px] text-emerald-400/80 hover:text-emerald-400 px-1.5 py-0.5 rounded transition font-semibold"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleStatusChange(r.id, "declined");
+                                    refreshFloorplan();
+                                  }}
+                                  className="text-[10px] text-red-400/60 hover:text-red-400 px-1.5 py-0.5 rounded transition"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
                             {r.status === "confirmed" && (
                               <>
                                 <button
@@ -783,7 +829,7 @@ export default function AdminPage() {
                                 </button>
                               </>
                             )}
-                            {r.status !== "confirmed" && (
+                            {r.status !== "confirmed" && r.status !== "pending" && (
                               <button
                                 onClick={() =>
                                   handleStatusChange(r.id, "confirmed")
@@ -812,6 +858,10 @@ export default function AdminPage() {
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
                       <span className="text-xs text-white/40">Available</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60 animate-pulse" />
+                      <span className="text-xs text-white/40">Pending</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
@@ -861,6 +911,8 @@ export default function AdminPage() {
                     const colorClass =
                       table.status === "available"
                         ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25"
+                        : table.status === "pending"
+                        ? "bg-yellow-500/15 border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/25 animate-pulse"
                         : table.status === "reserved"
                         ? "bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
                         : "bg-red-500/15 border-red-500/30 text-red-300 hover:bg-red-500/25";
@@ -897,6 +949,8 @@ export default function AdminPage() {
                         <span className="text-[9px] capitalize opacity-60 mt-0.5">
                           {table.status === "available"
                             ? "\u2713 Empty"
+                            : table.status === "pending"
+                            ? "\u25CB Pending"
                             : table.status === "reserved"
                             ? "\u25C9 Occupied"
                             : "\u2715 Blocked"}
@@ -918,6 +972,15 @@ export default function AdminPage() {
                     <span className="text-emerald-400 font-medium">
                       {
                         tables.filter((t) => t.status === "available")
+                          .length
+                      }
+                    </span>
+                  </span>
+                  <span>
+                    Pending:{" "}
+                    <span className="text-yellow-400 font-medium">
+                      {
+                        tables.filter((t) => t.status === "pending")
                           .length
                       }
                     </span>
@@ -967,6 +1030,10 @@ export default function AdminPage() {
                               ? "bg-emerald-400"
                               : tables.find(
                                   (t) => t.id === blockTableId
+                                )?.status === "pending"
+                              ? "bg-yellow-400 animate-pulse"
+                              : tables.find(
+                                  (t) => t.id === blockTableId
                                 )?.status === "reserved"
                               ? "bg-amber-400"
                               : "bg-red-400"
@@ -981,6 +1048,9 @@ export default function AdminPage() {
                           {tables.find((t) => t.id === blockTableId)
                             ?.status === "available"
                             ? "Empty"
+                            : tables.find((t) => t.id === blockTableId)
+                                ?.status === "pending"
+                            ? "Pending"
                             : tables.find((t) => t.id === blockTableId)
                                 ?.status === "reserved"
                             ? "Occupied"
@@ -1117,6 +1187,8 @@ export default function AdminPage() {
                                 className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
                                   r.status === "confirmed"
                                     ? "bg-emerald-500/15 text-emerald-400"
+                                    : r.status === "pending"
+                                    ? "bg-yellow-500/15 text-yellow-400"
                                     : r.status === "cancelled"
                                     ? "bg-white/5 text-white/30"
                                     : "bg-red-500/15 text-red-400"
@@ -1124,6 +1196,28 @@ export default function AdminPage() {
                               >
                                 {r.status}
                               </span>
+                              {r.status === "pending" && (
+                                <>
+                                  <button
+                                    onClick={async () => {
+                                      await handleStatusChange(r.id, "confirmed");
+                                      refreshFloorplan();
+                                    }}
+                                    className="text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded transition border border-emerald-500/10 font-semibold"
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      await handleStatusChange(r.id, "declined");
+                                      refreshFloorplan();
+                                    }}
+                                    className="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 px-2 py-0.5 rounded transition border border-red-500/10"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
                               {r.status === "confirmed" && (
                                 <button
                                   onClick={async () => {
@@ -1135,7 +1229,7 @@ export default function AdminPage() {
                                   Cancel
                                 </button>
                               )}
-                              {r.status !== "confirmed" && (
+                              {r.status !== "confirmed" && r.status !== "pending" && (
                                 <button
                                   onClick={async () => {
                                     await handleStatusChange(r.id, "confirmed");

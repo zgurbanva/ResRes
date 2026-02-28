@@ -89,6 +89,8 @@ export default function RestaurantPage({
         }`;
       case "reserved":
         return `${base} bg-amber-500/15 border-amber-500/30 text-amber-300/80`;
+      case "pending":
+        return `${base} bg-yellow-500/15 border-yellow-500/30 text-yellow-300/80 animate-pulse`;
       case "blocked":
         return `${base} bg-red-500/15 border-red-500/30 text-red-300/80`;
       default:
@@ -97,7 +99,7 @@ export default function RestaurantPage({
   };
 
   const availableCount = tables.filter((t) => t.status === "available").length;
-  const reservedCount = tables.filter((t) => t.status === "reserved").length;
+  const reservedCount = tables.filter((t) => t.status === "reserved" || t.status === "pending").length;
   const blockedCount = tables.filter((t) => t.status === "blocked").length;
 
   // Get unique zones for filter

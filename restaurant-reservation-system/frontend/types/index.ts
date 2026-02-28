@@ -26,7 +26,7 @@ export interface Table {
 }
 
 export interface TableAvailability extends Table {
-  status: "available" | "reserved" | "blocked";
+  status: "available" | "reserved" | "blocked" | "pending";
 }
 
 export interface TableCreate {

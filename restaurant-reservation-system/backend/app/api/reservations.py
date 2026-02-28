@@ -57,7 +57,7 @@ def create_reservation(data: ReservationCreate, db: Session = Depends(get_db)):
         user_phone=data.user_phone,
         user_email=data.user_email,
         preorder_note=data.preorder_note,
-        status="confirmed",
+        status="pending",
     )
     db.add(reservation)
     db.commit()

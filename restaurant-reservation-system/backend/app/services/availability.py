@@ -91,4 +91,15 @@ def get_table_status(
     if reservation:
         return "reserved"
 
+    # Check if pending (any pending reservation on that date)
+    pending = db.query(Reservation).filter(
+        and_(
+            Reservation.table_id == table_id,
+            Reservation.date == date,
+            Reservation.status == "pending",
+        )
+    ).first()
+    if pending:
+        return "pending"
+
     return "available"
