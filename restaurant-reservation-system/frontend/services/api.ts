@@ -10,6 +10,8 @@ import {
   AdminToken,
   TableCreate,
   TableUpdate,
+  UserMessageCreate,
+  UserMessage,
 } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -123,5 +125,29 @@ export const api = {
       method: "PATCH",
       headers: authHeaders(token),
       body: JSON.stringify(data),
+    }),
+
+  // Messages / Suggestions
+  sendMessage: (data: UserMessageCreate) =>
+    request<UserMessage>("/messages/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  adminGetMessages: (token: string) =>
+    request<UserMessage[]>("/messages/", {
+      headers: authHeaders(token),
+    }),
+
+  adminMarkMessageRead: (token: string, id: number) =>
+    request<UserMessage>(`/messages/${id}/read`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+    }),
+
+  adminDeleteMessage: (token: string, id: number) =>
+    request<{ ok: boolean }>(`/messages/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
     }),
 };

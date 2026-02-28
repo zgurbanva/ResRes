@@ -6,6 +6,9 @@ import { api } from "@/services/api";
 import { Restaurant } from "@/types";
 import Link from "next/link";
 import AboutModal from "@/components/AboutModal";
+import SuggestionsModal from "@/components/SuggestionsModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/lib/LanguageContext";
 
 /* Restaurant icon based on first letter — gives each card a unique visual identity */
 function RestaurantIcon({ name }: { name: string }) {
@@ -35,6 +38,8 @@ function RestaurantsContent() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
@@ -62,6 +67,7 @@ function RestaurantsContent() {
             Res<span className="text-purple-400">Res</span>
           </span>
         </Link>
+        <LanguageSwitcher />
       </nav>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 pb-24">
@@ -73,7 +79,7 @@ function RestaurantsContent() {
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to locations
+          {t("backToLocations")}
         </button>
 
         {/* Header */}
@@ -86,11 +92,11 @@ function RestaurantsContent() {
             <span className="text-sm text-purple-300/40 font-medium tracking-wide uppercase">{locationName}</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
-            Choose a{" "}
-            <span className="text-gradient-shine">Restaurant</span>
+            {t("chooseA")}{" "}
+            <span className="text-gradient-shine">{t("restaurant")}</span>
           </h1>
           <p className="text-purple-200/40 leading-relaxed">
-            View the floor plan and reserve your perfect table
+            {t("viewFloorPlanAndReserve")}
           </p>
           {/* Decorative line */}
           <div className="mt-6 flex items-center gap-3">
@@ -103,7 +109,7 @@ function RestaurantsContent() {
         {!loading && restaurants.length > 0 && (
           <div className="mb-6 animate-fade-in-delay-1 flex items-center gap-2">
             <span className="text-xs text-purple-300/30 font-medium tracking-wide">
-              {restaurants.length} restaurant{restaurants.length !== 1 ? "s" : ""} found
+              {restaurants.length} {restaurants.length !== 1 ? t("restaurantsFound") : t("restaurantFound")}
             </span>
           </div>
         )}
@@ -118,8 +124,8 @@ function RestaurantsContent() {
         ) : restaurants.length === 0 ? (
           <div className="text-center py-24 animate-fade-in">
             <UtensilIcon />
-            <p className="text-purple-200/30 text-lg mt-4 mb-2">No restaurants found</p>
-            <p className="text-purple-200/20 text-sm">Try a different district</p>
+            <p className="text-purple-200/30 text-lg mt-4 mb-2">{t("noRestaurantsFound")}</p>
+            <p className="text-purple-200/20 text-sm">{t("tryDifferentDistrict")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -140,7 +146,7 @@ function RestaurantsContent() {
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
                     </svg>
-                    View Floor Plan
+                    {t("viewFloorPlan")}
                   </div>
                 </div>
 
@@ -184,12 +190,21 @@ function RestaurantsContent() {
 
       {/* Footer */}
       <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
-        <button
-          onClick={() => setAboutOpen(true)}
-          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
-        >
-          About Us
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAboutOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("aboutUs")}
+          </button>
+          <span className="text-purple-500/20">|</span>
+          <button
+            onClick={() => setSuggestionsOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("suggestions")}
+          </button>
+        </div>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
@@ -198,6 +213,7 @@ function RestaurantsContent() {
       </div>
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <SuggestionsModal open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} />
     </div>
   );
 }

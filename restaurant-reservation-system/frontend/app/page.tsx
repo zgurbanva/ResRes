@@ -6,6 +6,9 @@ import { api } from "@/services/api";
 import { Location } from "@/types";
 import Link from "next/link";
 import AboutModal from "@/components/AboutModal";
+import SuggestionsModal from "@/components/SuggestionsModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/lib/LanguageContext";
 
 /* SVG icon paths for each Baku district */
 const locationSvgs: Record<string, JSX.Element> = {
@@ -109,6 +112,8 @@ export default function HomePage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
@@ -136,12 +141,15 @@ export default function HomePage() {
             Res<span className="text-purple-400">Res</span>
           </span>
         </div>
-        <Link
-          href="/admin"
-          className="text-sm text-purple-300/60 hover:text-purple-300 transition-colors px-4 py-2 rounded-lg hover:bg-purple-500/10 border border-transparent hover:border-purple-500/20"
-        >
-          Admin
-        </Link>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <Link
+            href="/admin"
+            className="text-sm text-purple-300/60 hover:text-purple-300 transition-colors px-4 py-2 rounded-lg hover:bg-purple-500/10 border border-transparent hover:border-purple-500/20"
+          >
+            {t("admin")}
+          </Link>
+        </div>
       </nav>
 
       {/* Hero */}
@@ -149,16 +157,16 @@ export default function HomePage() {
         <div className="animate-fade-in">
           <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-purple-500/20 bg-purple-500/5 mb-10 shadow-glow">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse-dot" />
-            <span className="text-sm text-purple-300/80 font-medium tracking-wide">Baku, Azerbaijan</span>
+            <span className="text-sm text-purple-300/80 font-medium tracking-wide">{t("bakuAzerbaijan")}</span>
           </div>
         </div>
         <h1 className="text-5xl md:text-7xl font-extrabold text-white text-center mb-5 animate-fade-in leading-[1.1]">
-          Find Your
+          {t("findYour")}
           <br />
-          <span className="text-gradient-shine">Perfect Table</span>
+          <span className="text-gradient-shine">{t("perfectTable")}</span>
         </h1>
         <p className="text-purple-200/50 text-lg text-center max-w-lg mb-4 animate-fade-in-delay-1 leading-relaxed">
-          Browse locations across Baku and reserve your seat at the best restaurants
+          {t("heroDescription")}
         </p>
         {/* Decorative line */}
         <div className="animate-fade-in-delay-2 flex items-center gap-3 mb-14">
@@ -172,7 +180,7 @@ export default function HomePage() {
       <div className="relative z-10 max-w-5xl mx-auto px-6 mb-6">
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-purple-500/20 to-transparent" />
-          <span className="text-xs text-purple-300/30 uppercase tracking-[0.2em] font-semibold">Select a District</span>
+          <span className="text-xs text-purple-300/30 uppercase tracking-[0.2em] font-semibold">{t("selectDistrict")}</span>
           <div className="h-px flex-1 bg-gradient-to-l from-purple-500/20 to-transparent" />
         </div>
       </div>
@@ -223,7 +231,7 @@ export default function HomePage() {
                     <svg className="w-3 h-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                    <span className="text-[10px] opacity-50 font-medium tracking-wide">Explore</span>
+                    <span className="text-[10px] opacity-50 font-medium tracking-wide">{t("explore")}</span>
                   </div>
                 </button>
               );
@@ -234,12 +242,21 @@ export default function HomePage() {
 
       {/* Footer */}
       <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
-        <button
-          onClick={() => setAboutOpen(true)}
-          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
-        >
-          About Us
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAboutOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("aboutUs")}
+          </button>
+          <span className="text-purple-500/20">|</span>
+          <button
+            onClick={() => setSuggestionsOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("suggestions")}
+          </button>
+        </div>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
@@ -248,6 +265,7 @@ export default function HomePage() {
       </div>
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <SuggestionsModal open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { api } from "@/services/api";
 import { TableAvailability } from "@/types";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Props {
   table: TableAvailability;
@@ -28,17 +29,18 @@ export default function ReservationModal({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!userName.trim()) {
-      setError("Name is required");
+      setError(t("nameRequired"));
       return;
     }
     if (startTime >= endTime) {
-      setError("Start time must be before end time");
+      setError(t("startBeforeEnd"));
       return;
     }
 
@@ -84,16 +86,16 @@ export default function ReservationModal({
         <div className="mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-3">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot"></div>
-            <span className="text-xs text-emerald-400 font-medium">Available</span>
+            <span className="text-xs text-emerald-400 font-medium">{t("available")}</span>
           </div>
           <h2 className="text-2xl font-bold text-white">
-            Reserve {table.name}
+            {t("reserve")} {table.name}
           </h2>
           <p className="text-purple-200/40 text-sm mt-1">
-            {table.capacity} seats &middot; {new Date(date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+            {table.capacity} {t("seats")} &middot; {new Date(date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
             {table.zone && (
               <span className="ml-2 inline-flex items-center gap-1 text-purple-300/60">
-                &middot; <span className="text-purple-300/80 font-medium">{table.zone}</span> zone
+                &middot; <span className="text-purple-300/80 font-medium">{table.zone}</span> {t("zone")}
               </span>
             )}
           </p>
@@ -107,7 +109,7 @@ export default function ReservationModal({
               </svg>
             </div>
             <p className="text-xl font-bold text-white mb-1">
-              Reservation Confirmed!
+              {t("reservationConfirmed")}
             </p>
             <p className="text-purple-200/40 text-sm">
               {table.name} &middot; {startTime} — {endTime}
@@ -119,7 +121,7 @@ export default function ReservationModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                  Start Time
+                  {t("startTime")}
                 </label>
                 <input
                   type="time"
@@ -131,7 +133,7 @@ export default function ReservationModal({
               </div>
               <div>
                 <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                  End Time
+                  {t("endTime")}
                 </label>
                 <input
                   type="time"
@@ -162,7 +164,7 @@ export default function ReservationModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                  Phone <span className="text-red-400">*</span>
+                  {t("phone")} <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="tel"
@@ -175,7 +177,7 @@ export default function ReservationModal({
               </div>
               <div>
                 <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                  Email <span className="text-red-400">*</span>
+                  {t("email")} <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -191,16 +193,16 @@ export default function ReservationModal({
             {/* Pre-order note */}
             <div>
               <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
-                Special Request / Pre-order Note
+                {t("specialRequest")}
               </label>
               <textarea
                 value={preorderNote}
                 onChange={(e) => setPreorderNote(e.target.value)}
                 className="input-dark w-full resize-none"
                 rows={3}
-                placeholder="Can you prepare my meal before I come? Birthday cake, vegetarian menu, high chair needed..."
+                placeholder={t("specialRequestPlaceholder")}
               />
-              <p className="text-[10px] text-purple-200/20 mt-1">Tell us anything — meal prep, allergies, celebrations, special setup</p>
+              <p className="text-[10px] text-purple-200/20 mt-1">{t("specialRequestHint")}</p>
             </div>
 
             {/* Error */}
@@ -223,14 +225,14 @@ export default function ReservationModal({
                 {submitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Reserving...
+                    {t("reserving")}
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    Confirm Reservation
+                    {t("confirmReservation")}
                   </>
                 )}
               </span>

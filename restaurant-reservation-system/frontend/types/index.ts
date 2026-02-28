@@ -104,3 +104,20 @@ export interface AdminToken {
   restaurant_name: string | null;
   is_super_admin: boolean;
 }
+
+export interface UserMessageCreate {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export interface UserMessage {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  created_at: string;
+  is_read: boolean;
+}

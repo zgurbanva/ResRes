@@ -7,6 +7,9 @@ import { api } from "@/services/api";
 import { Restaurant, TableAvailability } from "@/types";
 import ReservationModal from "@/components/ReservationModal";
 import AboutModal from "@/components/AboutModal";
+import SuggestionsModal from "@/components/SuggestionsModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const ZONE_DOT_COLORS: Record<string, string> = {
   Window: "bg-sky-400",
@@ -52,6 +55,8 @@ export default function RestaurantPage({
   const [hoveredTable, setHoveredTable] = useState<number | null>(null);
   const [zoneFilter, setZoneFilter] = useState<string | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
@@ -129,6 +134,7 @@ export default function RestaurantPage({
             Res<span className="text-purple-400">Res</span>
           </span>
         </Link>
+        <LanguageSwitcher />
       </nav>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
@@ -140,7 +146,7 @@ export default function RestaurantPage({
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          Back
+          {t("back")}
         </button>
 
         {/* Restaurant Header */}
@@ -183,7 +189,7 @@ export default function RestaurantPage({
               <svg className="w-4 h-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Date
+              {t("date")}
             </label>
             <input
               type="date"
@@ -197,15 +203,15 @@ export default function RestaurantPage({
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-2 group">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60 ring-2 ring-emerald-500/20 group-hover:ring-emerald-500/40 transition-all"></div>
-              <span className="text-xs text-white/40">Available <span className="text-emerald-400 font-bold tabular-nums">{availableCount}</span></span>
+              <span className="text-xs text-white/40">{t("available")} <span className="text-emerald-400 font-bold tabular-nums">{availableCount}</span></span>
             </div>
             <div className="flex items-center gap-2 group">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/60 ring-2 ring-amber-500/20 group-hover:ring-amber-500/40 transition-all"></div>
-              <span className="text-xs text-white/40">Reserved <span className="text-amber-400 font-bold tabular-nums">{reservedCount}</span></span>
+              <span className="text-xs text-white/40">{t("reserved")} <span className="text-amber-400 font-bold tabular-nums">{reservedCount}</span></span>
             </div>
             <div className="flex items-center gap-2 group">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/60 ring-2 ring-red-500/20 group-hover:ring-red-500/40 transition-all"></div>
-              <span className="text-xs text-white/40">Blocked <span className="text-red-400 font-bold tabular-nums">{blockedCount}</span></span>
+              <span className="text-xs text-white/40">{t("blocked")} <span className="text-red-400 font-bold tabular-nums">{blockedCount}</span></span>
             </div>
           </div>
         </div>
@@ -213,7 +219,7 @@ export default function RestaurantPage({
         {/* Zone filter chips */}
         {zones.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4 animate-fade-in-delay-1">
-            <span className="text-xs text-purple-200/30 mr-1">Filter by zone:</span>
+            <span className="text-xs text-purple-200/30 mr-1">{t("filterByZone")}</span>
             <button
               onClick={() => setZoneFilter(null)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
@@ -222,7 +228,7 @@ export default function RestaurantPage({
                   : "bg-white/[0.03] border-white/5 text-purple-200/30 hover:text-purple-200/50"
               }`}
             >
-              All
+              {t("all")}
             </button>
             {zones.map((z) => (
               <button
@@ -251,7 +257,7 @@ export default function RestaurantPage({
                 <svg className="w-3.5 h-3.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
                 </svg>
-                Floor Plan
+                {t("floorPlan")}
               </div>
               <div
                 className="relative rounded-xl bg-[#0d0818] border border-purple-500/10"
@@ -317,7 +323,7 @@ export default function RestaurantPage({
                     >
                       <span className="font-bold text-xs">{table.name}</span>
                       <span className="text-[10px] opacity-70">
-                        {table.capacity} seats
+                        {table.capacity} {t("seats")}
                       </span>
                       {table.status !== "available" && (
                         <span className="text-[9px] uppercase tracking-wider opacity-60 mt-0.5">
@@ -326,7 +332,7 @@ export default function RestaurantPage({
                       )}
                       {table.status === "available" && isHovered && (
                         <span className="text-[9px] text-emerald-400 font-medium mt-0.5 animate-pulse">
-                          Click to reserve
+                          {t("clickToReserve")}
                         </span>
                       )}
                     </div>
@@ -339,7 +345,7 @@ export default function RestaurantPage({
               <svg className="w-3.5 h-3.5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
               </svg>
-              Click an available (green) table to make a reservation
+            {t("clickAvailableTable")}
             </p>
           </div>
         )}
@@ -347,12 +353,21 @@ export default function RestaurantPage({
 
       {/* Footer */}
       <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
-        <button
-          onClick={() => setAboutOpen(true)}
-          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
-        >
-          About Us
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAboutOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("aboutUs")}
+          </button>
+          <span className="text-purple-500/20">|</span>
+          <button
+            onClick={() => setSuggestionsOpen(true)}
+            className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+          >
+            {t("suggestions")}
+          </button>
+        </div>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
@@ -361,6 +376,7 @@ export default function RestaurantPage({
       </div>
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <SuggestionsModal open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} />
 
       {modalOpen && selectedTable && (
         <ReservationModal

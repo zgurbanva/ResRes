@@ -1,11 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageContext";
+
 interface AboutModalProps {
   open: boolean;
   onClose: () => void;
 }
 
 export default function AboutModal({ open, onClose }: AboutModalProps) {
+  const { t } = useLanguage();
   if (!open) return null;
 
   return (
@@ -47,7 +50,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
             </svg>
           </div>
           <h2 className="text-lg font-bold text-white tracking-tight">
-            About <span className="text-purple-400">ResRes</span>
+            {t("about")} <span className="text-purple-400">ResRes</span>
           </h2>
         </div>
 
@@ -56,13 +59,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
 
         {/* Message */}
         <p className="text-sm text-purple-200/70 text-center leading-relaxed">
-          Hello, I&apos;m <span className="text-white font-semibold">Resres</span>.
-          I was developed by{" "}
-          <span className="text-purple-400 font-semibold">Zeynab Gurbanova</span>{" "}
-          — Computer Science student at{" "}
-          <span className="text-white font-medium">ASOIU</span> and Computer
-          Science &amp; Software Engineering student at{" "}
-          <span className="text-white font-medium">Holberton School</span>.
+          {t("aboutDescription")}
         </p>
 
         {/* Footer accent */}
