@@ -53,7 +53,7 @@ function RestaurantsContent() {
   return (
     <div className="min-h-screen bg-mesh bg-orbs noise-overlay">
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5">
+      <nav className="relative z-30 flex items-center justify-between px-6 md:px-12 py-5">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow relative overflow-hidden">
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,transparent_50%)]" />
