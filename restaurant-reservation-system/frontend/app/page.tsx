@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import { Location } from "@/types";
 import Link from "next/link";
+import AboutModal from "@/components/AboutModal";
 
 /* SVG icon paths for each Baku district */
 const locationSvgs: Record<string, JSX.Element> = {
@@ -107,6 +108,7 @@ const defaultAccent = "from-purple-500/20 to-purple-600/5 text-purple-400 border
 export default function HomePage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -230,14 +232,22 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Footer accent */}
-      <div className="relative z-10 pb-8 flex justify-center">
+      {/* Footer */}
+      <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
+        <button
+          onClick={() => setAboutOpen(true)}
+          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+        >
+          About Us
+        </button>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
           <div className="w-4 h-px bg-purple-500/15" />
         </div>
       </div>
+
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import { Restaurant } from "@/types";
 import Link from "next/link";
+import AboutModal from "@/components/AboutModal";
 
 /* Restaurant icon based on first letter — gives each card a unique visual identity */
 function RestaurantIcon({ name }: { name: string }) {
@@ -33,6 +34,7 @@ function RestaurantsContent() {
   const locationName = searchParams?.get("location_name") || "All";
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -180,14 +182,22 @@ function RestaurantsContent() {
         )}
       </div>
 
-      {/* Footer accent */}
-      <div className="relative z-10 pb-8 flex justify-center">
+      {/* Footer */}
+      <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
+        <button
+          onClick={() => setAboutOpen(true)}
+          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+        >
+          About Us
+        </button>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
           <div className="w-4 h-px bg-purple-500/15" />
         </div>
       </div>
+
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/services/api";
 import { Restaurant, TableAvailability } from "@/types";
 import ReservationModal from "@/components/ReservationModal";
+import AboutModal from "@/components/AboutModal";
 
 const ZONE_DOT_COLORS: Record<string, string> = {
   Window: "bg-sky-400",
@@ -50,6 +51,7 @@ export default function RestaurantPage({
   const [loading, setLoading] = useState(true);
   const [hoveredTable, setHoveredTable] = useState<number | null>(null);
   const [zoneFilter, setZoneFilter] = useState<string | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -343,14 +345,22 @@ export default function RestaurantPage({
         )}
       </div>
 
-      {/* Footer accent */}
-      <div className="relative z-10 pb-8 flex justify-center">
+      {/* Footer */}
+      <div className="relative z-10 pb-8 flex flex-col items-center gap-3">
+        <button
+          onClick={() => setAboutOpen(true)}
+          className="text-xs text-purple-300/30 hover:text-purple-300/70 transition-colors cursor-pointer"
+        >
+          About Us
+        </button>
         <div className="flex items-center gap-2 text-purple-300/15 text-xs">
           <div className="w-4 h-px bg-purple-500/15" />
           <span className="tracking-widest uppercase">ResRes</span>
           <div className="w-4 h-px bg-purple-500/15" />
         </div>
       </div>
+
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       {modalOpen && selectedTable && (
         <ReservationModal
