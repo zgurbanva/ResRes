@@ -142,8 +142,23 @@ export default function AdminPage() {
     if (!token) return;
     try {
       await api.adminUpdateReservation(token, id, status);
+
+      // Immediately update local state so the notification disappears right away
+      setAllReservations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status } : r))
+      );
+
+      // Also remove from dismissed tracking (no longer needed)
+      setDismissedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+
+      // Refresh from server in background for full accuracy
       refreshReservations();
       refreshFloorplan();
+
       const label =
         status === "confirmed"
           ? "Successfully Approved!"
