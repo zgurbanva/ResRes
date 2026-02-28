@@ -15,12 +15,13 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const { headers, ...rest } = options || {};
   const res = await fetch(`${API_BASE}${url}`, {
+    ...rest,
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...(headers as Record<string, string>),
     },
-    ...options,
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Request failed" }));
