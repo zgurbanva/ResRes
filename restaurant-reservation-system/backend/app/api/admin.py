@@ -218,11 +218,55 @@ def set_table_status(
     if data.status not in ("occupied", "empty", "blocked"):
         raise HTTPException(status_code=400, detail="Status must be occupied, empty, or blocked")
 
+    import datetime
+    target_date = datetime.date.fromisoformat(data.date)
+
+    cancelled_count = 0
+    removed_blocks = 0
+
+    if data.status == "empty":
+        # Cancel all confirmed reservations for this table on this date
+        reservations = db.query(Reservation).filter(
+            Reservation.table_id == table_id,
+            Reservation.date == target_date,
+            Reservation.status == "confirmed",
+        ).all()
+        for r in reservations:
+            r.status = "cancelled"
+            cancelled_count += 1
+
+        # Remove all blocks for this table on this date
+        blocks = db.query(TableBlock).filter(
+            TableBlock.table_id == table_id,
+            TableBlock.date == target_date,
+        ).all()
+        for b in blocks:
+            db.delete(b)
+            removed_blocks += 1
+
+    elif data.status == "blocked":
+        # Cancel all confirmed reservations for this table on this date
+        reservations = db.query(Reservation).filter(
+            Reservation.table_id == table_id,
+            Reservation.date == target_date,
+            Reservation.status == "confirmed",
+        ).all()
+        for r in reservations:
+            r.status = "cancelled"
+            cancelled_count += 1
+
     table.manual_status = data.status
     table.manual_status_date = data.date
     db.commit()
     db.refresh(table)
-    return {"ok": True, "table_id": table.id, "status": data.status, "date": data.date}
+    return {
+        "ok": True,
+        "table_id": table.id,
+        "status": data.status,
+        "date": data.date,
+        "cancelled_reservations": cancelled_count,
+        "removed_blocks": removed_blocks,
+    }
 
 
 # ─── Restaurant floor shape ─────────────────────────────────────

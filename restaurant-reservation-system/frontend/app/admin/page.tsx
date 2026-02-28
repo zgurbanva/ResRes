@@ -1012,6 +1012,7 @@ export default function AdminPage() {
                             setBlockSuccess(true);
                             setBlockError("");
                             refreshFloorplan();
+                            refreshReservations();
                             setTimeout(() => setBlockSuccess(false), 2000);
                           } catch (err: any) {
                             setBlockError(err.message || "Failed");
@@ -1056,6 +1057,7 @@ export default function AdminPage() {
                             setBlockSuccess(true);
                             setBlockError("");
                             refreshFloorplan();
+                            refreshReservations();
                             setTimeout(() => setBlockSuccess(false), 2000);
                           } catch (err: any) {
                             setBlockError(err.message || "Failed");
@@ -1082,6 +1084,75 @@ export default function AdminPage() {
                     )}
                   </div>
                 )}
+
+                {/* Reservations on this table */}
+                {blockTableId && (() => {
+                  const tableReservations = allReservations.filter(
+                    (r) => r.table_id === blockTableId && r.date === selectedDate
+                  );
+                  if (tableReservations.length === 0) return null;
+                  return (
+                    <div className="mb-5 border-t border-purple-500/10 pt-4">
+                      <label className="block text-xs font-semibold text-purple-200/40 uppercase tracking-wider mb-2">
+                        Reservations on this table
+                      </label>
+                      <div className="space-y-2">
+                        {tableReservations.map((r) => (
+                          <div
+                            key={r.id}
+                            className="bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 flex items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0">
+                              <div className="text-xs text-white font-medium truncate">
+                                {r.user_name}
+                                <span className="text-purple-200/30 ml-1">#{r.id}</span>
+                              </div>
+                              <div className="text-[10px] text-purple-200/40">
+                                {r.start_time} — {r.end_time}
+                                {r.user_phone && <span className="ml-1">· {r.user_phone}</span>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                  r.status === "confirmed"
+                                    ? "bg-emerald-500/15 text-emerald-400"
+                                    : r.status === "cancelled"
+                                    ? "bg-white/5 text-white/30"
+                                    : "bg-red-500/15 text-red-400"
+                                }`}
+                              >
+                                {r.status}
+                              </span>
+                              {r.status === "confirmed" && (
+                                <button
+                                  onClick={async () => {
+                                    await handleStatusChange(r.id, "cancelled");
+                                    refreshFloorplan();
+                                  }}
+                                  className="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 px-2 py-0.5 rounded transition border border-red-500/10"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                              {r.status !== "confirmed" && (
+                                <button
+                                  onClick={async () => {
+                                    await handleStatusChange(r.id, "confirmed");
+                                    refreshFloorplan();
+                                  }}
+                                  className="text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded transition border border-emerald-500/10"
+                                >
+                                  Restore
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Block with time range */}
                 <div className="border-t border-purple-500/10 pt-5 mt-2">
