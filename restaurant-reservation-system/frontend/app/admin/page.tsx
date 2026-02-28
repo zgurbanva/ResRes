@@ -45,6 +45,14 @@ export default function AdminPage() {
   const [blockError, setBlockError] = useState("");
   const [blockSuccess, setBlockSuccess] = useState(false);
 
+  /* ── Table manager ──────────────────────────────────────── */
+  const ALL_ZONES = ["Window", "Front", "Terrace", "Patio", "Center", "VIP", "Bar", "Lounge", "Corner", "Garden"];
+  const [showTableManager, setShowTableManager] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [addingToZone, setAddingToZone] = useState<string | null>(null);
+  const [newTableCapacity, setNewTableCapacity] = useState(4);
+  const [newTableShape, setNewTableShape] = useState("rect");
+
   /* ── Toast notification ─────────────────────────────────── */
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -196,6 +204,65 @@ export default function AdminPage() {
     } catch (err: any) {
       setBlockError(err.message || "Failed to block table");
       showToast(err.message || "Failed to block table", "error");
+    }
+  };
+
+  /* ── Add / Delete tables ────────────────────────────────── */
+  const handleAddTable = async (zone: string) => {
+    if (!token || view.page !== "floorplan") return;
+    const restaurantId = view.restaurantId;
+    const zoneTables = tables.filter(t => t.zone === zone);
+    const nums = zoneTables.map(t => {
+      const m = t.name.match(/(\d+)$/);
+      return m ? parseInt(m[1]) : 0;
+    });
+    const nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1;
+    const name = `${zone} ${nextNum}`;
+    let posX = 20, posY = 20;
+    if (zoneTables.length > 0) {
+      const last = zoneTables[zoneTables.length - 1];
+      posX = last.position_x + last.width + 20;
+      posY = last.position_y;
+      if (posX + 100 > 680) {
+        posX = 20;
+        posY = last.position_y + last.height + 20;
+      }
+    } else if (tables.length > 0) {
+      const maxY = Math.max(...tables.map(t => t.position_y + t.height));
+      posY = maxY + 20;
+    }
+    try {
+      await api.adminCreateTable(token, {
+        restaurant_id: restaurantId,
+        name,
+        capacity: newTableCapacity,
+        position_x: posX,
+        position_y: posY,
+        width: 100,
+        height: 80,
+        shape: newTableShape,
+        zone,
+      });
+      refreshFloorplan();
+      setAddingToZone(null);
+      setNewTableCapacity(4);
+      setNewTableShape("rect");
+      showToast(`Added ${name}`, "success");
+    } catch (err: any) {
+      showToast(err.message || "Failed to add table", "error");
+    }
+  };
+
+  const handleDeleteTable = async (tableId: number) => {
+    if (!token) return;
+    try {
+      await api.adminDeleteTable(token, tableId);
+      setDeleteConfirmId(null);
+      if (blockTableId === tableId) setBlockTableId(null);
+      refreshFloorplan();
+      showToast("Table deleted", "success");
+    } catch (err: any) {
+      showToast(err.message || "Failed to delete table", "error");
     }
   };
 
@@ -1355,6 +1422,186 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
+
+            {/* ═══════════════════════════════════════════════════════
+                TABLE MANAGEMENT — add / remove tables by zone
+                ═══════════════════════════════════════════════════════ */}
+            <div className="mt-6 bg-white/[0.04] border border-purple-500/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                  </svg>
+                  Manage Tables
+                </h3>
+                <button
+                  onClick={() => setShowTableManager(!showTableManager)}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                    showTableManager
+                      ? "bg-purple-500/20 border-purple-500/40 text-purple-300"
+                      : "bg-white/[0.06] border-white/10 text-white/60 hover:text-white hover:border-purple-500/30"
+                  }`}
+                >
+                  {showTableManager ? "Close" : "Open"}
+                </button>
+              </div>
+
+              {showTableManager && (
+                <div className="mt-5 space-y-3">
+                  {/* Zone summary chips */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {ALL_ZONES.map(zone => {
+                      const count = tables.filter(t => t.zone === zone).length;
+                      return (
+                        <span
+                          key={zone}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                            count > 0
+                              ? "bg-purple-500/10 border-purple-500/20 text-purple-300"
+                              : "bg-white/[0.03] border-white/[0.06] text-white/30"
+                          }`}
+                        >
+                          {zone}: {count}
+                        </span>
+                      );
+                    })}
+                    {(() => {
+                      const noZone = tables.filter(t => !t.zone).length;
+                      return noZone > 0 ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium border bg-white/[0.03] border-white/[0.06] text-white/30">
+                          No Zone: {noZone}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
+
+                  {/* Zone sections */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {ALL_ZONES.map(zone => {
+                      const zoneTables = tables.filter(t => t.zone === zone);
+                      return (
+                        <div
+                          key={zone}
+                          className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4"
+                        >
+                          {/* Zone header */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-white">{zone}</span>
+                              <span className="text-[10px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full font-medium">
+                                {zoneTables.length} table{zoneTables.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => setAddingToZone(addingToZone === zone ? null : zone)}
+                              className="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg transition border border-emerald-500/15 font-semibold"
+                            >
+                              + Add
+                            </button>
+                          </div>
+
+                          {/* Add table form */}
+                          {addingToZone === zone && (
+                            <div className="mb-3 bg-purple-500/5 border border-purple-500/15 rounded-lg p-3 space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-medium text-purple-200/50 mb-1">Capacity</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={20}
+                                    value={newTableCapacity}
+                                    onChange={e => setNewTableCapacity(parseInt(e.target.value) || 4)}
+                                    className="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-purple-500/50 transition"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-medium text-purple-200/50 mb-1">Shape</label>
+                                  <select
+                                    value={newTableShape}
+                                    onChange={e => setNewTableShape(e.target.value)}
+                                    className="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-purple-500/50 transition [&>option]:bg-[#1a1025] [&>option]:text-white"
+                                  >
+                                    <option value="rect">Rectangle</option>
+                                    <option value="circle">Circle</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleAddTable(zone)}
+                                  className="flex-1 bg-emerald-500/80 hover:bg-emerald-500 text-white py-1.5 rounded-lg text-xs font-semibold transition"
+                                >
+                                  Add Table
+                                </button>
+                                <button
+                                  onClick={() => { setAddingToZone(null); setNewTableCapacity(4); setNewTableShape("rect"); }}
+                                  className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/10 text-white/50 rounded-lg text-xs transition"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Table list */}
+                          {zoneTables.length > 0 ? (
+                            <div className="space-y-1.5">
+                              {zoneTables.map(t => (
+                                <div
+                                  key={t.id}
+                                  className="flex items-center justify-between bg-white/[0.03] border border-white/[0.05] rounded-lg px-3 py-2 group"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div
+                                      className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                        t.status === "available" ? "bg-emerald-400"
+                                          : t.status === "pending" ? "bg-yellow-400"
+                                          : t.status === "reserved" ? "bg-amber-400"
+                                          : "bg-red-400"
+                                      }`}
+                                    />
+                                    <span className="text-xs text-white/80 truncate">{t.name}</span>
+                                    <span className="text-[10px] text-white/30">{t.capacity} seats</span>
+                                    <span className="text-[10px] text-white/20">{t.shape === "circle" ? "⬤" : "▬"}</span>
+                                  </div>
+                                  {deleteConfirmId === t.id ? (
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <button
+                                        onClick={() => handleDeleteTable(t.id)}
+                                        className="text-[10px] bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2 py-0.5 rounded transition border border-red-500/20 font-semibold"
+                                      >
+                                        Confirm
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteConfirmId(null)}
+                                        className="text-[10px] bg-white/[0.06] hover:bg-white/10 text-white/40 px-2 py-0.5 rounded transition"
+                                      >
+                                        No
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setDeleteConfirmId(t.id)}
+                                      className="text-[10px] text-red-400/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition px-1.5 py-0.5"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-white/20 italic">No tables in this zone</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         )}
       </div>
