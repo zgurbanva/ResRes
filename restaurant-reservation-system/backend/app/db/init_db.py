@@ -661,6 +661,22 @@ def seed_db():
                     db.add_all(table_layouts[rest.name])
             db.commit()
 
+            # ── Create one admin per restaurant ──
+            import re
+            for rest in all_restaurants:
+                # Generate email from restaurant name: "Firuze Restaurant — Fountain Square" → "firuze-restaurant-fountain-square@resres.az"
+                slug = re.sub(r"[^a-z0-9]+", "-", rest.name.lower().replace("—", "").replace("'", "")).strip("-")
+                admin_email = f"{slug}@resres.az"
+                existing = db.query(AdminUser).filter(AdminUser.email == admin_email).first()
+                if not existing:
+                    db.add(AdminUser(
+                        email=admin_email,
+                        password_hash=get_password_hash("admin123"),
+                        role="admin",
+                        restaurant_id=rest.id,
+                    ))
+            db.commit()
+
     except Exception as e:
         db.rollback()
         print(f"Seed error: {e}")

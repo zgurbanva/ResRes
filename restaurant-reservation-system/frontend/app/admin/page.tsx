@@ -18,9 +18,12 @@ type AdminView =
 export default function AdminPage() {
   /* ── Auth ────────────────────────────────────────────────── */
   const [token, setToken] = useState<string | null>(null);
-  const [email, setEmail] = useState("admin@admin.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [adminRestaurantId, setAdminRestaurantId] = useState<number | null>(null);
+  const [adminRestaurantName, setAdminRestaurantName] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   /* ── Navigation ─────────────────────────────────────────── */
   const [view, setView] = useState<AdminView>({ page: "home" });
@@ -56,6 +59,17 @@ export default function AdminPage() {
     try {
       const result = await api.adminLogin(email, password);
       setToken(result.access_token);
+      setAdminRestaurantId(result.restaurant_id);
+      setAdminRestaurantName(result.restaurant_name);
+      setIsSuperAdmin(result.is_super_admin);
+      // If restaurant-scoped admin, go directly to their floor plan
+      if (result.restaurant_id && result.restaurant_name) {
+        setView({
+          page: "floorplan",
+          restaurantId: result.restaurant_id,
+          restaurantName: result.restaurant_name,
+        });
+      }
     } catch (err: any) {
       setLoginError(err.message || "Login failed");
     }
@@ -64,13 +78,16 @@ export default function AdminPage() {
   /* ── Load locations + all reservations on login ─────────── */
   useEffect(() => {
     if (!token) return;
-    api.getLocations().then(setLocations).catch(console.error);
-    api.getRestaurants().then(setRestaurants).catch(console.error);
+    // Super admins see everything; restaurant admins only need reservations
+    if (isSuperAdmin || !adminRestaurantId) {
+      api.getLocations().then(setLocations).catch(console.error);
+      api.getRestaurants().then(setRestaurants).catch(console.error);
+    }
     api
       .adminGetReservations(token)
       .then(setAllReservations)
       .catch(console.error);
-  }, [token]);
+  }, [token, isSuperAdmin, adminRestaurantId]);
 
   /* ── Load tables when viewing a floor plan ──────────────── */
   useEffect(() => {
@@ -135,6 +152,8 @@ export default function AdminPage() {
 
   /* ── Navigate to restaurant from reservation ────────────── */
   const goToRestaurantFloorplan = (reservation: Reservation) => {
+    // Restaurant admins can only view their own restaurant
+    if (adminRestaurantId && reservation.restaurant_id !== adminRestaurantId) return;
     const rest = restaurants.find((r) => r.id === reservation.restaurant_id);
     setView({
       page: "floorplan",
@@ -236,7 +255,13 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setView({ page: "home" })}
+              onClick={() => {
+                if (adminRestaurantId && adminRestaurantName) {
+                  setView({ page: "floorplan", restaurantId: adminRestaurantId, restaurantName: adminRestaurantName });
+                } else {
+                  setView({ page: "home" });
+                }
+              }}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
@@ -249,13 +274,19 @@ export default function AdminPage() {
             <div className="h-5 w-px bg-purple-500/15 mx-1" />
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-xs">
-              <button
-                onClick={() => setView({ page: "home" })}
-                className="text-purple-300/40 hover:text-purple-300 transition"
-              >
-                Dashboard
-              </button>
-              {view.page === "restaurants" && (
+              {isSuperAdmin || !adminRestaurantId ? (
+                <button
+                  onClick={() => setView({ page: "home" })}
+                  className="text-purple-300/40 hover:text-purple-300 transition"
+                >
+                  Dashboard
+                </button>
+              ) : (
+                <span className="text-purple-300/60 font-medium">
+                  {adminRestaurantName}
+                </span>
+              )}
+              {(isSuperAdmin || !adminRestaurantId) && view.page === "restaurants" && (
                 <>
                   <span className="text-purple-500/30">/</span>
                   <span className="text-purple-300/60">
@@ -263,7 +294,7 @@ export default function AdminPage() {
                   </span>
                 </>
               )}
-              {view.page === "floorplan" && (
+              {(isSuperAdmin || !adminRestaurantId) && view.page === "floorplan" && (
                 <>
                   <span className="text-purple-500/30">/</span>
                   <span className="text-purple-300/60">
@@ -275,7 +306,13 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setView({ page: "home" })}
+              onClick={() => {
+                if (adminRestaurantId && adminRestaurantName) {
+                  setView({ page: "floorplan", restaurantId: adminRestaurantId, restaurantName: adminRestaurantName });
+                } else {
+                  setView({ page: "home" });
+                }
+              }}
               className="relative text-purple-300/40 hover:text-purple-300 transition"
             >
               <svg
@@ -298,7 +335,13 @@ export default function AdminPage() {
               )}
             </button>
             <button
-              onClick={() => setToken(null)}
+              onClick={() => {
+                setToken(null);
+                setAdminRestaurantId(null);
+                setAdminRestaurantName(null);
+                setIsSuperAdmin(false);
+                setView({ page: "home" });
+              }}
               className="text-purple-300/40 hover:text-purple-300 text-sm transition"
             >
               Logout
@@ -436,7 +479,7 @@ export default function AdminPage() {
         {/* ═══════════════════════════════════════════════════════
             HOME — Location Grid
             ═══════════════════════════════════════════════════════ */}
-        {view.page === "home" && (
+        {view.page === "home" && (isSuperAdmin || !adminRestaurantId) && (
           <div>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-white mb-1">
@@ -493,7 +536,7 @@ export default function AdminPage() {
         {/* ═══════════════════════════════════════════════════════
             RESTAURANTS in a Location
             ═══════════════════════════════════════════════════════ */}
-        {view.page === "restaurants" && (
+        {view.page === "restaurants" && (isSuperAdmin || !adminRestaurantId) && (
           <div>
             <div className="mb-6">
               <button
@@ -575,41 +618,43 @@ export default function AdminPage() {
         {view.page === "floorplan" && (
           <div>
             <div className="mb-6">
-              <button
-                onClick={() => {
-                  const rest = restaurants.find(
-                    (r) => r.id === view.restaurantId
-                  );
-                  const loc = locations.find(
-                    (l) => l.id === rest?.location_id
-                  );
-                  if (loc) {
-                    setView({
-                      page: "restaurants",
-                      locationId: loc.id,
-                      locationName: loc.name,
-                    });
-                  } else {
-                    setView({ page: "home" });
-                  }
-                }}
-                className="text-xs text-purple-400/60 hover:text-purple-400 transition mb-3 flex items-center gap-1"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+              {(isSuperAdmin || !adminRestaurantId) && (
+                <button
+                  onClick={() => {
+                    const rest = restaurants.find(
+                      (r) => r.id === view.restaurantId
+                    );
+                    const loc = locations.find(
+                      (l) => l.id === rest?.location_id
+                    );
+                    if (loc) {
+                      setView({
+                        page: "restaurants",
+                        locationId: loc.id,
+                        locationName: loc.name,
+                      });
+                    } else {
+                      setView({ page: "home" });
+                    }
+                  }}
+                  className="text-xs text-purple-400/60 hover:text-purple-400 transition mb-3 flex items-center gap-1"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                Back to restaurants
-              </button>
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  Back to restaurants
+                </button>
+              )}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-white">

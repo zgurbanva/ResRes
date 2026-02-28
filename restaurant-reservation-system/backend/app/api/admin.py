@@ -24,8 +24,22 @@ def admin_login(data: AdminLogin, db: Session = Depends(get_db)):
     admin = db.query(AdminUser).filter(AdminUser.email == data.email).first()
     if not admin or not verify_password(data.password, admin.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token({"sub": admin.email, "role": admin.role})
-    return AdminToken(access_token=token)
+    is_super = admin.restaurant_id is None
+    token = create_access_token({
+        "sub": admin.email,
+        "role": admin.role,
+        "restaurant_id": admin.restaurant_id,
+    })
+    restaurant_name = None
+    if admin.restaurant_id:
+        rest = db.query(Restaurant).filter(Restaurant.id == admin.restaurant_id).first()
+        restaurant_name = rest.name if rest else None
+    return AdminToken(
+        access_token=token,
+        restaurant_id=admin.restaurant_id,
+        restaurant_name=restaurant_name,
+        is_super_admin=is_super,
+    )
 
 
 @router.post("/table-blocks", response_model=TableBlockOut, status_code=201)
@@ -34,6 +48,9 @@ def create_table_block(
     db: Session = Depends(get_db),
     admin: dict = Depends(get_current_admin),
 ):
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and admin_rest_id != data.restaurant_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     if data.start_time >= data.end_time:
         raise HTTPException(status_code=400, detail="Start time must be before end time")
 
@@ -71,8 +88,12 @@ def get_reservations(
     db: Session = Depends(get_db),
     admin: dict = Depends(get_current_admin),
 ):
+    admin_rest_id = admin.get("restaurant_id")
     query = db.query(Reservation)
-    if restaurant_id:
+    if admin_rest_id is not None:
+        # Restaurant admin can only see their own reservations
+        query = query.filter(Reservation.restaurant_id == admin_rest_id)
+    elif restaurant_id:
         query = query.filter(Reservation.restaurant_id == restaurant_id)
     return query.order_by(Reservation.date.desc(), Reservation.start_time.desc()).all()
 
@@ -87,6 +108,9 @@ def update_reservation(
     reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and reservation.restaurant_id != admin_rest_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     if data.status not in ("confirmed", "cancelled", "declined"):
         raise HTTPException(status_code=400, detail="Invalid status")
@@ -105,6 +129,9 @@ def create_table(
     db: Session = Depends(get_db),
     admin: dict = Depends(get_current_admin),
 ):
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and admin_rest_id != data.restaurant_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     restaurant = db.query(Restaurant).filter(Restaurant.id == data.restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
@@ -136,6 +163,9 @@ def update_table(
     table = db.query(Table).filter(Table.id == table_id).first()
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -155,6 +185,9 @@ def delete_table(
     table = db.query(Table).filter(Table.id == table_id).first()
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     db.delete(table)
     db.commit()
@@ -170,6 +203,9 @@ def update_restaurant_floor(
     db: Session = Depends(get_db),
     admin: dict = Depends(get_current_admin),
 ):
+    admin_rest_id = admin.get("restaurant_id")
+    if admin_rest_id is not None and admin_rest_id != restaurant_id:
+        raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")

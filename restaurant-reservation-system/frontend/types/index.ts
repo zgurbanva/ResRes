@@ -100,4 +100,7 @@ export interface TableBlock {
 export interface AdminToken {
   access_token: string;
   token_type: string;
+  restaurant_id: number | null;
+  restaurant_name: string | null;
+  is_super_admin: boolean;
 }
