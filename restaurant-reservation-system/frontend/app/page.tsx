@@ -122,8 +122,13 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow">
-            <span className="text-white text-lg font-black">R</span>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow relative overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,transparent_50%)]" />
+            <svg className="w-5 h-5 relative z-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 4h7a5 5 0 010 10h-2l5 6M7 4v16M7 14h5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M7 4h7a5 5 0 010 10" stroke="url(#rGlow)" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
+              <defs><linearGradient id="rGlow" x1="7" y1="4" x2="19" y2="14"><stop stopColor="#e9d5ff" /><stop offset="1" stopColor="#a855f7" stopOpacity="0" /></linearGradient></defs>
+            </svg>
           </div>
           <span className="text-lg font-bold text-white tracking-tight">
             Res<span className="text-purple-400">Res</span>

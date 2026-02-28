@@ -237,8 +237,13 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#0f0a1a] via-[#1a0e2e] to-[#0f0a1a] bg-orbs noise-overlay flex items-center justify-center p-4">
         <div className="relative z-10 w-full max-w-sm">
           <div className="flex flex-col items-center mb-8 animate-fade-in">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mb-4 shadow-glow">
-              <span className="text-white text-2xl font-black">R</span>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mb-4 shadow-glow relative overflow-hidden">
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,transparent_50%)]" />
+              <svg className="w-8 h-8 relative z-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 4h7a5 5 0 010 10h-2l5 6M7 4v16M7 14h5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M7 4h7a5 5 0 010 10" stroke="url(#rGlowLogin)" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
+                <defs><linearGradient id="rGlowLogin" x1="7" y1="4" x2="19" y2="14"><stop stopColor="#e9d5ff" /><stop offset="1" stopColor="#a855f7" stopOpacity="0" /></linearGradient></defs>
+              </svg>
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
               Res<span className="text-purple-400">Res</span>
@@ -329,8 +334,13 @@ export default function AdminPage() {
               }}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow">
-                <span className="text-white text-sm font-black">R</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow relative overflow-hidden">
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,transparent_50%)]" />
+                <svg className="w-4 h-4 relative z-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 4h7a5 5 0 010 10h-2l5 6M7 4v16M7 14h5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7 4h7a5 5 0 010 10" stroke="url(#rGlowNav)" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
+                  <defs><linearGradient id="rGlowNav" x1="7" y1="4" x2="19" y2="14"><stop stopColor="#e9d5ff" /><stop offset="1" stopColor="#a855f7" stopOpacity="0" /></linearGradient></defs>
+                </svg>
               </div>
               <span className="text-sm font-bold text-white tracking-tight">
                 Res<span className="text-purple-400">Res</span>
