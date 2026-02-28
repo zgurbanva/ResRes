@@ -56,6 +56,7 @@ export default function RestaurantPage({
   const [zoneFilter, setZoneFilter] = useState<string | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const { t } = useLanguage();
   const router = useRouter();
 
@@ -374,6 +375,77 @@ export default function RestaurantPage({
           <div className="w-4 h-px bg-purple-500/15" />
         </div>
       </div>
+
+      {/* Floating Google Maps Card */}
+      {restaurant?.address && (
+        <>
+          {/* Map toggle button */}
+          <button
+            onClick={() => setMapOpen(!mapOpen)}
+            className={`fixed bottom-6 right-6 z-40 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
+              mapOpen
+                ? "bg-purple-600 text-white shadow-purple-500/30"
+                : "bg-[#1a0e2e]/90 backdrop-blur-xl border border-purple-500/20 text-purple-400 hover:text-purple-300 hover:border-purple-500/40 hover:shadow-purple-500/20"
+            }`}
+            title={t("viewOnMap")}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+
+          {/* Map card */}
+          {mapOpen && (
+            <div className="fixed bottom-20 right-6 z-40 w-80 animate-fade-in">
+              <div className="bg-[#1a0e2e]/95 backdrop-blur-xl border border-purple-500/20 rounded-2xl shadow-2xl overflow-hidden">
+                {/* Map header */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-purple-500/10">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 text-purple-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-xs font-medium text-purple-200/60 truncate max-w-[180px]">{restaurant.address}</span>
+                  </div>
+                  <button
+                    onClick={() => setMapOpen(false)}
+                    className="text-purple-400/40 hover:text-purple-300 transition-colors p-1"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Map iframe */}
+                <div className="w-full h-48">
+                  <iframe
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(restaurant.address + ', Baku, Azerbaijan')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                    allowFullScreen
+                  />
+                </div>
+
+                {/* Open in Google Maps link */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address + ', Baku, Azerbaijan')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs text-purple-400/60 hover:text-purple-300 transition-colors border-t border-purple-500/10"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  {t("openInGoogleMaps")}
+                </a>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <SuggestionsModal open={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} />

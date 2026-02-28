@@ -590,6 +590,22 @@ const translations = {
     it: "Suggerimenti",
     ko: "제안",
   },
+  viewOnMap: {
+    en: "View on Map",
+    az: "Xəritədə bax",
+    ru: "На карте",
+    es: "Ver en mapa",
+    it: "Vedi su mappa",
+    ko: "지도에서 보기",
+  },
+  openInGoogleMaps: {
+    en: "Open in Google Maps",
+    az: "Google Xəritələrdə aç",
+    ru: "Открыть в Google Картах",
+    es: "Abrir en Google Maps",
+    it: "Apri in Google Maps",
+    ko: "Google 지도에서 열기",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
