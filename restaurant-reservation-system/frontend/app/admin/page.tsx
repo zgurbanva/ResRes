@@ -841,19 +841,13 @@ export default function AdminPage() {
                             {r.status === "pending" && (
                               <>
                                 <button
-                                  onClick={() => {
-                                    handleStatusChange(r.id, "confirmed");
-                                    refreshFloorplan();
-                                  }}
+                                  onClick={() => handleStatusChange(r.id, "confirmed")}
                                   className="text-[10px] text-emerald-400/80 hover:text-emerald-400 px-1.5 py-0.5 rounded transition font-semibold"
                                 >
                                   Approve
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    handleStatusChange(r.id, "declined");
-                                    refreshFloorplan();
-                                  }}
+                                  onClick={() => handleStatusChange(r.id, "declined")}
                                   className="text-[10px] text-red-400/60 hover:text-red-400 px-1.5 py-0.5 rounded transition"
                                 >
                                   Reject
