@@ -219,10 +219,10 @@ export default function AdminPage() {
      ═══════════════════════════════════════════════════════════ */
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f0a1a] via-[#1a0e2e] to-[#0f0a1a] flex items-center justify-center p-4">
-        <div className="w-full max-w-sm">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mb-3">
+      <div className="min-h-screen bg-gradient-to-br from-[#0f0a1a] via-[#1a0e2e] to-[#0f0a1a] bg-orbs noise-overlay flex items-center justify-center p-4">
+        <div className="relative z-10 w-full max-w-sm">
+          <div className="flex flex-col items-center mb-8 animate-fade-in">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mb-4 shadow-glow">
               <span className="text-white text-2xl font-black">R</span>
             </div>
             <span className="text-lg font-bold text-white tracking-tight">
@@ -232,16 +232,16 @@ export default function AdminPage() {
               </span>
             </span>
           </div>
-          <div className="bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-7">
+          <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-7 shadow-2xl animate-fade-in-delay-1">
             <h1 className="text-xl font-bold text-white mb-2 text-center">
               Sign in to Dashboard
             </h1>
-            <p className="text-xs text-purple-200/40 text-center mb-6">
+            <p className="text-xs text-purple-200/30 text-center mb-6">
               Each admin can only manage their own restaurant
             </p>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                <label className="block text-xs font-medium text-purple-200/40 mb-1.5">
                   Restaurant Admin Email
                 </label>
                 <input
@@ -249,12 +249,12 @@ export default function AdminPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. papa-johns-28-may@resres.az"
-                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50 transition"
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/15 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-purple-200/50 mb-1.5">
+                <label className="block text-xs font-medium text-purple-200/40 mb-1.5">
                   Password
                 </label>
                 <input
@@ -262,22 +262,33 @@ export default function AdminPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50 transition"
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/15 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition"
                   required
                 />
               </div>
               {loginError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-sm">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
                   {loginError}
                 </div>
               )}
               <button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-semibold transition"
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-3 rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30"
               >
                 Sign In
               </button>
             </form>
+          </div>
+          {/* Decorative lines */}
+          <div className="flex justify-center mt-8 animate-fade-in-delay-2">
+            <div className="flex items-center gap-2 text-purple-300/10 text-xs">
+              <div className="w-4 h-px bg-purple-500/10" />
+              <span className="tracking-widest uppercase">Secure Access</span>
+              <div className="w-4 h-px bg-purple-500/10" />
+            </div>
           </div>
         </div>
       </div>
@@ -288,7 +299,7 @@ export default function AdminPage() {
      DASHBOARD
      ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#0f0a1a]">
+    <div className="min-h-screen bg-[#0f0a1a] noise-overlay">
       {/* ── Header ──────────────────────────────────────────── */}
       <header className="border-b border-purple-500/10 bg-[#0f0a1a]/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -303,7 +314,7 @@ export default function AdminPage() {
               }}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-glow">
                 <span className="text-white text-sm font-black">R</span>
               </div>
               <span className="text-sm font-bold text-white tracking-tight">
@@ -579,7 +590,10 @@ export default function AdminPage() {
                     className="relative bg-white/[0.04] border border-purple-500/10 rounded-xl p-5 text-left hover:bg-white/[0.07] hover:border-purple-500/20 transition group"
                   >
                     <div className="text-2xl mb-2 opacity-60 group-hover:opacity-100 transition">
-                      &#x1F4CD;
+                      <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                      </svg>
                     </div>
                     <div className="text-sm font-semibold text-white mb-1">
                       {loc.name}
@@ -634,7 +648,11 @@ export default function AdminPage() {
             </div>
             {filteredRestaurants.length === 0 ? (
               <div className="text-center py-16">
-                <div className="text-4xl mb-3 opacity-20">&#x1F37D;&#xFE0F;</div>
+                <div className="text-4xl mb-3 opacity-20">
+                  <svg className="w-12 h-12 mx-auto text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11V4a1 1 0 00-1-1h-1a1 1 0 00-1 1v7m4 0H12m3 0v9m-3-9v9M5 3v5a3 3 0 003 3m-3-8h6M8 11v10" />
+                  </svg>
+                </div>
                 <p className="text-purple-200/30">
                   No restaurants in this location
                 </p>
@@ -1336,8 +1354,20 @@ export default function AdminPage() {
                 : "bg-purple-500/20 border-purple-500/30 text-purple-300"
             }`}
           >
-            <span className="text-lg">
-              {toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ"}
+            <span className="text-lg flex-shrink-0">
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              ) : toast.type === "error" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+              )}
             </span>
             <span className="text-sm font-semibold">{toast.message}</span>
             <button
