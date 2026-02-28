@@ -45,6 +45,13 @@ export default function AdminPage() {
   const [blockError, setBlockError] = useState("");
   const [blockSuccess, setBlockSuccess] = useState(false);
 
+  /* ── Toast notification ─────────────────────────────────── */
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   /* ── Notification dismiss tracking ──────────────────────── */
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
 
@@ -137,8 +144,17 @@ export default function AdminPage() {
       await api.adminUpdateReservation(token, id, status);
       refreshReservations();
       refreshFloorplan();
+      const label =
+        status === "confirmed"
+          ? "Successfully Approved!"
+          : status === "declined"
+          ? "Successfully Rejected!"
+          : status === "cancelled"
+          ? "Successfully Cancelled!"
+          : "Status Updated!";
+      showToast(label, "success");
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message || "Action failed", "error");
     }
   };
 
@@ -161,8 +177,10 @@ export default function AdminPage() {
       setBlockTableId(null);
       setBlockReason("");
       refreshFloorplan();
+      showToast("Successfully Blocked time range!", "success");
     } catch (err: any) {
       setBlockError(err.message || "Failed to block table");
+      showToast(err.message || "Failed to block table", "error");
     }
   };
 
@@ -1079,13 +1097,13 @@ export default function AdminPage() {
                           if (!token || !blockTableId) return;
                           try {
                             await api.adminSetTableStatus(token, blockTableId, "empty", selectedDate);
-                            setBlockSuccess(true);
                             setBlockError("");
                             refreshFloorplan();
                             refreshReservations();
-                            setTimeout(() => setBlockSuccess(false), 2000);
+                            showToast("Successfully set to Empty!", "success");
                           } catch (err: any) {
                             setBlockError(err.message || "Failed");
+                            showToast(err.message || "Failed to set Empty", "error");
                           }
                         }}
                         className={`py-2 rounded-xl text-xs font-semibold transition border ${
@@ -1102,12 +1120,12 @@ export default function AdminPage() {
                           if (!token || !blockTableId) return;
                           try {
                             await api.adminSetTableStatus(token, blockTableId, "occupied", selectedDate);
-                            setBlockSuccess(true);
                             setBlockError("");
                             refreshFloorplan();
-                            setTimeout(() => setBlockSuccess(false), 2000);
+                            showToast("Successfully set to Occupied!", "success");
                           } catch (err: any) {
                             setBlockError(err.message || "Failed");
+                            showToast(err.message || "Failed to set Occupied", "error");
                           }
                         }}
                         className={`py-2 rounded-xl text-xs font-semibold transition border ${
@@ -1124,13 +1142,13 @@ export default function AdminPage() {
                           if (!token || !blockTableId) return;
                           try {
                             await api.adminSetTableStatus(token, blockTableId, "blocked", selectedDate);
-                            setBlockSuccess(true);
                             setBlockError("");
                             refreshFloorplan();
                             refreshReservations();
-                            setTimeout(() => setBlockSuccess(false), 2000);
+                            showToast("Successfully Blocked!", "success");
                           } catch (err: any) {
                             setBlockError(err.message || "Failed");
+                            showToast(err.message || "Failed to Block", "error");
                           }
                         }}
                         className={`py-2 rounded-xl text-xs font-semibold transition border ${
@@ -1145,11 +1163,6 @@ export default function AdminPage() {
                     {blockError && (
                       <div className="mt-3 bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-sm">
                         {blockError}
-                      </div>
-                    )}
-                    {blockSuccess && (
-                      <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 rounded-lg text-sm">
-                        &#x2713; Status updated!
                       </div>
                     )}
                   </div>
@@ -1308,6 +1321,36 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          TOAST NOTIFICATION — fixed bottom-center overlay
+          ═══════════════════════════════════════════════════════ */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-[slideUp_0.3s_ease-out]">
+          <div
+            className={`flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-xl ${
+              toast.type === "success"
+                ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+                : toast.type === "error"
+                ? "bg-red-500/20 border-red-500/30 text-red-300"
+                : "bg-purple-500/20 border-purple-500/30 text-purple-300"
+            }`}
+          >
+            <span className="text-lg">
+              {toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ"}
+            </span>
+            <span className="text-sm font-semibold">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 opacity-50 hover:opacity-100 transition"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
