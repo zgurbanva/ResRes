@@ -50,7 +50,9 @@ def create_table_block(
     admin: dict = Depends(get_current_admin),
 ):
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and admin_rest_id != data.restaurant_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != data.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     if data.start_time >= data.end_time:
         raise HTTPException(status_code=400, detail="Start time must be before end time")
@@ -110,7 +112,9 @@ def update_reservation(
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and reservation.restaurant_id != admin_rest_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != reservation.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     if data.status not in ("confirmed", "cancelled", "declined"):
@@ -148,7 +152,9 @@ def create_table(
     admin: dict = Depends(get_current_admin),
 ):
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and admin_rest_id != data.restaurant_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != data.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     restaurant = db.query(Restaurant).filter(Restaurant.id == data.restaurant_id).first()
     if not restaurant:
@@ -182,7 +188,9 @@ def update_table(
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != table.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     update_data = data.model_dump(exclude_unset=True)
@@ -204,7 +212,9 @@ def delete_table(
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != table.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
     db.delete(table)
@@ -230,7 +240,9 @@ def set_table_status(
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and table.restaurant_id != admin_rest_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != table.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     if data.status not in ("occupied", "empty", "blocked"):
         raise HTTPException(status_code=400, detail="Status must be occupied, empty, or blocked")
@@ -296,7 +308,9 @@ def update_restaurant_floor(
     admin: dict = Depends(get_current_admin),
 ):
     admin_rest_id = admin.get("restaurant_id")
-    if admin_rest_id is not None and admin_rest_id != restaurant_id:
+    if admin_rest_id is None:
+        raise HTTPException(status_code=403, detail="Super admin is read-only and cannot modify restaurant data")
+    if admin_rest_id != restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
