@@ -122,7 +122,14 @@ export default function AdminPage() {
 
   /* ── Load tables when viewing a floor plan ──────────────── */
   useEffect(() => {
-    if (view.page !== "floorplan") return;
+    if (view.page !== "floorplan") {
+      // Reset table manager state when leaving floorplan
+      setShowTableManager(false);
+      setDeleteConfirmId(null);
+      setAddingToZone(null);
+      setBlockTableId(null);
+      return;
+    }
     api
       .getAvailability(view.restaurantId, selectedDate)
       .then(setTables)
@@ -260,6 +267,7 @@ export default function AdminPage() {
       setDeleteConfirmId(null);
       if (blockTableId === tableId) setBlockTableId(null);
       refreshFloorplan();
+      refreshReservations();
       showToast("Table deleted", "success");
     } catch (err: any) {
       showToast(err.message || "Failed to delete table", "error");
@@ -1435,7 +1443,13 @@ export default function AdminPage() {
                   Manage Tables
                 </h3>
                 <button
-                  onClick={() => setShowTableManager(!showTableManager)}
+                  onClick={() => {
+                    setShowTableManager(!showTableManager);
+                    if (showTableManager) {
+                      setDeleteConfirmId(null);
+                      setAddingToZone(null);
+                    }
+                  }}
                   className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition border ${
                     showTableManager
                       ? "bg-purple-500/20 border-purple-500/40 text-purple-300"

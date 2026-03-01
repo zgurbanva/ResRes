@@ -207,6 +207,21 @@ def delete_table(
     if admin_rest_id is not None and admin_rest_id != table.restaurant_id:
         raise HTTPException(status_code=403, detail="You can only manage your own restaurant")
 
+    # Prevent deleting tables with active (pending/confirmed) reservations
+    active_count = (
+        db.query(Reservation)
+        .filter(
+            Reservation.table_id == table_id,
+            Reservation.status.in_(["pending", "confirmed"]),
+        )
+        .count()
+    )
+    if active_count > 0:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot delete table with {active_count} active reservation(s). Cancel them first.",
+        )
+
     db.delete(table)
     db.commit()
     return None
